@@ -193,3 +193,10 @@ The concurrent version is backward compatible:
 - Same input format
 - Same output format
 - Just much faster! ⚡
+
+�� Why Some Sites Still Show Only Clearbit
+Some sites like Amazon, Google, and JioHotstar still show only Clearbit logos because:
+JavaScript-loaded logos: Modern sites load logos dynamically via JavaScript
+CDN restrictions: Logos served from CDNs that block scraping
+Minimal HTML: Sites with very clean HTML that load logos asynchronously
+Anti-bot measures: Some sites detect and block automated requests
