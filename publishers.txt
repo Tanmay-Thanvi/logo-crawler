@@ -10,3 +10,6 @@ phonepe.com
 paytm
 microsoft.com
 netflix.com
+nytimes.com
+geeksforgeeks.org
+hindustantimes.com
