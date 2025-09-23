@@ -1,3 +1,4 @@
+apple.com
 amazon
 google.com
 hotstar
@@ -7,3 +8,5 @@ deepintent.com
 honeywell.com
 phonepe.com
 paytm
+microsoft.com
+netflix.com

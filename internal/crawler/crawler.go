@@ -56,7 +56,10 @@ func (lc *LogoCrawler) FetchPublisherLogos(input string, prefs config.Preference
 	// Step 3: Select best logo
 	best := lc.selector.SelectBest(valid, prefs)
 
-	return valid, best
+	// Step 4: Sort logos with best logo first
+	sortedLogos := lc.sortLogosWithBestFirst(valid, best)
+
+	return sortedLogos, best
 }
 
 // FetchPublisherLogos is the public interface for backward compatibility
@@ -141,4 +144,27 @@ func FetchPublishersConcurrently(publishers []string, prefs config.Preferences, 
 	})
 
 	return results
+}
+
+// sortLogosWithBestFirst sorts logos with the best logo at the beginning
+func (lc *LogoCrawler) sortLogosWithBestFirst(logos []LogoInfo, best *LogoInfo) []LogoInfo {
+	if best == nil || len(logos) <= 1 {
+		return logos
+	}
+
+	var sortedLogos []LogoInfo
+	var otherLogos []LogoInfo
+
+	// Separate best logo from others
+	for _, logo := range logos {
+		if logo.URL == best.URL {
+			sortedLogos = append(sortedLogos, logo)
+		} else {
+			otherLogos = append(otherLogos, logo)
+		}
+	}
+
+	// Add best logo first, then others
+	sortedLogos = append(sortedLogos, otherLogos...)
+	return sortedLogos
 }
