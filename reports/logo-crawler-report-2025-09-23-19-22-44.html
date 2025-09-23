@@ -1,0 +1,932 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logo Crawler Report</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            padding: 30px;
+            background: #f8f9fa;
+        }
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+        .stat-number.error {
+            color: #d32f2f;
+        }
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .results {
+            padding: 30px;
+        }
+        .publisher {
+            margin-bottom: 30px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .publisher-header {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .publisher-name {
+            font-weight: bold;
+            font-size: 1.1em;
+            color: #333;
+        }
+        .publisher-duration {
+            color: #666;
+            font-size: 0.9em;
+        }
+        .publisher-error {
+            background: #ffe6e6;
+            color: #d32f2f;
+            padding: 15px 20px;
+        }
+        .logos {
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        .logo-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #ddd;
+            overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .logo-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .logo-card.best {
+            border-left-color: #4caf50;
+            background: #f1f8e9;
+        }
+        .logo-image-container {
+            height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            position: relative;
+        }
+        .logo-image {
+            max-width: 100px;
+            max-height: 100px;
+            object-fit: contain;
+            border-radius: 4px;
+            transition: opacity 0.3s ease;
+        }
+        .logo-image.loading {
+            opacity: 0.5;
+        }
+        .logo-image.error {
+            display: none;
+        }
+        .logo-placeholder {
+            display: none;
+            color: #999;
+            font-size: 0.8em;
+            text-align: center;
+        }
+        .logo-placeholder.show {
+            display: block;
+        }
+        .logo-info {
+            padding: 12px;
+        }
+        .logo-url {
+            font-size: 0.8em;
+            color: #333;
+            word-break: break-all;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 4px;
+        }
+        .logo-url:hover {
+            color: #667eea;
+            text-decoration: underline;
+        }
+        .logo-dimensions {
+            font-size: 0.75em;
+            color: #666;
+            margin-bottom: 8px;
+        }
+        .best-badge {
+            background: #4caf50;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.7em;
+            font-weight: bold;
+            display: inline-block;
+        }
+        .no-logos {
+            text-align: center;
+            color: #666;
+            padding: 20px;
+            font-style: italic;
+        }
+        .footer {
+            background: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+         
+        @media (max-width: 768px) {
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .logos {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+            .logo-image-container {
+                height: 100px;
+            }
+            .logo-image {
+                max-width: 80px;
+                max-height: 80px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .stats {
+                grid-template-columns: 1fr;
+            }
+            .logos {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            }
+            .container {
+                margin: 10px;
+                border-radius: 4px;
+            }
+            .header {
+                padding: 20px;
+            }
+            .header h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Logo Crawler Report</h1>
+            <p>Generated on September 23, 2025 at 7:22 PM</p>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number">9</div>
+                <div class="stat-label">Total Publishers</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">9</div>
+                <div class="stat-label">With Logos</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number error">0</div>
+                <div class="stat-label">Errors</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">28</div>
+                <div class="stat-label">Total Logos</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">100.0%</div>
+                <div class="stat-label">Success Rate</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">4.909s</div>
+                <div class="stat-label">Total Time</div>
+            </div>
+        </div>
+        
+        <div class="results">
+            <h2>📊 Results</h2>
+            
+            <div class="publisher">
+                
+                <div class="publisher-header">
+                    <div class="publisher-name">🔎 amazon</div>
+                    <div class="publisher-duration">Processed in 2.912596833s</div>
+                </div>
+                <div class="logos">
+                    
+                        
+                        
+                        <div class="logo-card best">
+                            <div class="logo-image-container">
+                                <img src="https://logo.clearbit.com/amazon.com" alt="Logo" class="logo-image" 
+                                     onerror="this.classList.add('error'); this.nextElementSibling.classList.add('show');"
+                                     onload="this.classList.remove('loading'); this.nextElementSibling.classList.remove('show');"
+                                     onloadstart="this.classList.add('loading');">
+                                <div class="logo-placeholder">
+                                    🖼️ Image not available<br>
+                                    <small>Click link to view</small>
+                                </div>
+                            </div>
+                            <div class="logo-info">
+                                <a href="https://logo.clearbit.com/amazon.com" target="_blank" class="logo-url">https://logo.clearbit.com/amazon.com</a>
+                                <div class="logo-dimensions">128x128 pixels</div>
+                                
+                                <span class="best-badge">✅ BEST</span>
+                                
+                            </div>
+                        </div>
+                        
+                    
+                </div>
+                
+            </div>
+            
+            <div class="publisher">
+                
+                <div class="publisher-header">
+                    <div class="publisher-name">🔎 google.com</div>
+                    <div class="publisher-duration">Processed in 1.40102475s</div>
+                </div>
+                <div class="logos">
+                    
+                        
+                        
+                        <div class="logo-card best">
+                            <div class="logo-image-container">
+                                <img src="https://logo.clearbit.com/google.com" alt="Logo" class="logo-image" 
+                                     onerror="this.classList.add('error'); this.nextElementSibling.classList.add('show');"
+                                     onload="this.classList.remove('loading'); this.nextElementSibling.classList.remove('show');"
+                                     onloadstart="this.classList.add('loading');">
+                                <div class="logo-placeholder">
+                                    🖼️ Image not available<br>
+                                    <small>Click link to view</small>
+                                </div>
+                            </div>
+                            <div class="logo-info">
+                                <a href="https://logo.clearbit.com/google.com" target="_blank" class="logo-url">https://logo.clearbit.com/google.com</a>
+                                <div class="logo-dimensions">125x128 pixels</div>
+                                
+                                <span class="best-badge">✅ BEST</span>
+                                
+                            </div>
+                        </div>
+                        
+                    
+                </div>
+                
+            </div>
+            
+            <div class="publisher">
+                
+                <div class="publisher-header">
+                    <div class="publisher-name">🔎 hotstar</div>
+                    <div class="publisher-duration">Processed in 470.127084ms</div>
+                </div>
+                <div class="logos">
+                    
+                        
+                        
+                        <div class="logo-card best">
+                            <div class="logo-image-container">
+                                <img src="https://logo.clearbit.com/hotstar.com" alt="Logo" class="logo-image" 
+                                     onerror="this.classList.add('error'); this.nextElementSibling.classList.add('show');"
+                                     onload="this.classList.remove('loading'); this.nextElementSibling.classList.remove('show');"
+                                     onloadstart="this.classList.add('loading');">
+                                <div class="logo-placeholder">
+                                    🖼️ Image not available<br>
+                                    <small>Click link to view</small>
+                                </div>
+                            </div>
+                            <div class="logo-info">
+                                <a href="https://logo.clearbit.com/hotstar.com" target="_blank" class="logo-url">https://logo.clearbit.com/hotstar.com</a>
+                                <div class="logo-dimensions">128x128 pixels</div>
+                                
+                                <span class="best-badge">✅ BEST</span>
+                                
+                            </div>
+                        </div>
+                        
+                    
+                </div>
+                
+            </div>
+            
+            <div class="publisher">
+                
+                <div class="publisher-header">
+                    <div class="publisher-name">🔎 jiohotstar.com</div>
+                    <div class="publisher-duration">Processed in 726.010084ms</div>
+                </div>
+                <div class="logos">
+                    
+                        
+                        
+                        <div class="logo-card best">
+                            <div class="logo-image-container">
+                                <img src="https://logo.clearbit.com/jiohotstar.com" alt="Logo" class="logo-image" 
+                                     onerror="this.classList.add('error'); this.nextElementSibling.classList.add('show');"
+                                     onload="this.classList.remove('loading'); this.nextElementSibling.classList.remove('show');"
+                                     onloadstart="this.classList.add('loading');">
+                                <div class="logo-placeholder">
+                                    🖼️ Image not available<br>
+                                    <small>Click link to view</small>
+                                </div>
+                            </div>
+                            <div class="logo-info">
+                                <a href="https://logo.clearbit.com/jiohotstar.com" target="_blank" class="logo-url">https://logo.clearbit.com/jiohotstar.com</a>
+                                <div class="logo-dimensions">128x128 pixels</div>
+                                
+                                <span class="best-badge">✅ BEST</span>
+                                
+                            </div>
+                        </div>
+                        
+                    
+                </div>
+                
+            </div>
+            
+            <div class="publisher">
+                
+                <div class="publisher-header">
+                    <div class="publisher-name">🔎 pubmatic.com</div>
+                    <div class="publisher-duration">Processed in 381.364458ms</div>
+                </div>
+                <div class="logos">
+                    
+                        
+                        
+                        <div class="logo-card ">
+                            <div class="logo-image-container">
+                                <img src="https://logo.clearbit.com/pubmatic.com" alt="Logo" class="logo-image" 
+                                     onerror="this.classList.add('error'); this.nextElementSibling.classList.add('show');"
+                                     onload="this.classList.remove('loading'); this.nextElementSibling.classList.remove('show');"
+                                     onloadstart="this.classList.add('loading');">
+                                <div class="logo-placeholder">
+                                    🖼️ Image not available<br>
+                                    <small>Click link to view</small>
+                                </div>
+                            </div>
+                            <div class="logo-info">
+                                <a href="https://logo.clearbit.com/pubmatic.com" target="_blank" class="logo-url">https://logo.clearbit.com/pubmatic.com</a>
+                                <div class="logo-dimensions">128x128 pixels</div>
+                                
+                            </div>
+                        </div>
+                        
+                        <div class="logo-card ">
+                            <div class="logo-image-container">
+                                <img src="https://pubmatic.com/favicon-16x16.png" alt="Logo" class="logo-image" 
+                                     onerror="this.classList.add('error'); this.nextElementSibling.classList.add('show');"
+                                     onload="this.classList.remove('loading'); this.nextElementSibling.classList.remove('show');"
+                                     onloadstart="this.classList.add('loading');">
+                                <div class="logo-placeholder">
+                                    🖼️ Image not available<br>
+                                    <small>Click link to view</small>
+                                </div>
+                            </div>
+                            <div class="logo-info">
+                                <a href="https://pubmatic.com/favicon-16x16.png" target="_blank" class="logo-url">https://pubmatic.com/favicon-16x16.png</a>
+                                <div class="logo-dimensions">16x16 pixels</div>
+                                
+                            </div>
+                        </div>
+                        
+                        <div class="logo-card ">
+                            <div class="logo-image-container">
+                                <img src="https://pubmatic.com/favicon-32x32.png" alt="Logo" class="logo-image" 
+                                     onerror="this.classList.add('error'); this.nextElementSibling.classList.add('show');"
+                                     onload="this.classList.remove('loading'); this.nextElementSibling.classList.remove('show');"
+                                     onloadstart="this.classList.add('loading');">
+                                <div class="logo-placeholder">
+                                    🖼️ Image not available<br>
+                                    <small>Click link to view</small>
+                                </div>
+                            </div>
+                            <div class="logo-info">
+                                <a href="https://pubmatic.com/favicon-32x32.png" target="_blank" class="logo-url">https://pubmatic.com/favicon-32x32.png</a>
+                                <div class="logo-dimensions">32x32 pixels</div>
+                                
+                            </div>
+                        </div>
+                        
+                        <div class="logo-card best">
+                            <div class="logo-image-container">
+                                <img src="https://pubmatic.com/wp-content/uploads/2024/06/Social-Homepage.png" alt="Logo" class="logo-image" 
+                                     onerror="this.classList.add('error'); this.nextElementSibling.classList.add('show');"
+                                     onload="this.classList.remove('loading'); this.nextElementSibling.classList.remove('show');"
+                                     onloadstart="this.classList.add('loading');">
+                                <div class="logo-placeholder">
+                                    🖼️ Image not available<br>
+                                    <small>Click link to view</small>
+                                </div>
+                            </div>
+                            <div class="logo-info">
+                                <a href="https://pubmatic.com/wp-content/uploads/2024/06/Social-Homepage.png" target="_blank" class="logo-url">https://pubmatic.com/wp-content/uploads/2024/06/Social-Homepage.png</a>
+                                <div class="logo-dimensions">1200x628 pixels</div>
+                                
+                                <span class="best-badge">✅ BEST</span>
+                                
+                            </div>
+                        </div>
+                        
+                        <div class="logo-card ">
+                            <div class="logo-image-container">
+                                <img src="https://pubmatic.com/apple-touch-icon.png" alt="Logo" class="logo-image" 
+                                     onerror="this.classList.add('error'); this.nextElementSibling.classList.add('show');"
+                                     onload="this.classList.remove('loading'); this.nextElementSibling.classList.remove('show');"
+                                     onloadstart="this.classList.add('loading');">
+                                <div class="logo-placeholder">
+                                    🖼️ Image not available<br>
+                                    <small>Click link to view</small>
+                                </div>
+                            </div>
+                            <div class="logo-info">
+                                <a href="https://pubmatic.com/apple-touch-icon.png" target="_blank" class="logo-url">https://pubmatic.com/apple-touch-icon.png</a>
+                                <div class="logo-dimensions">180x180 pixels</div>
+                                
+                            </div>
+                        </div>
+                        
+                    
+                </div>
+                
+            </div>
+            
+            <div class="publisher">
+                
+                <div class="publisher-header">
+                    <div class="publisher-name">🔎 deepintent.com</div>
+                    <div class="publisher-duration">Processed in 2.549567083s</div>
+                </div>
+                <div class="logos">
+                    
+                        
+                        
+                        <div class="logo-card ">
+                            <div class="logo-image-container">
+                                <img src="https://cdn.prod.website-files.com/6892244f9dd9b35467d0048b/68bf194570ea038cffd29456_d-deepintent-icon.png" alt="Logo" class="logo-image" 
+                                     onerror="this.classList.add('error'); this.nextElementSibling.classList.add('show');"
+                                     onload="this.classList.remove('loading'); this.nextElementSibling.classList.remove('show');"
+                                     onloadstart="this.classList.add('loading');">
+                                <div class="logo-placeholder">
+                                    🖼️ Image not available<br>
+                                    <small>Click link to view</small>
+                                </div>
+                            </div>
+                            <div class="logo-info">
+                                <a href="https://cdn.prod.website-files.com/6892244f9dd9b35467d0048b/68bf194570ea038cffd29456_d-deepintent-icon.png" target="_blank" class="logo-url">https://cdn.prod.website-files.com/6892244f9dd9b35467d0048b/68bf194570ea038cffd29456_d-deepintent-icon.png</a>
+                                <div class="logo-dimensions">32x32 pixels</div>
+                                
+                            </div>
+                        </div>
+                        
+                        <div class="logo-card best">
+                            <div class="logo-image-container">
+                                <img src="https://cdn.prod.website-files.com/6892244f9dd9b35467d0048b/68bf321c6862e09783528a09_og-img.png" alt="Logo" class="logo-image" 
+                                     onerror="this.classList.add('error'); this.nextElementSibling.classList.add('show');"
+                                     onload="this.classList.remove('loading'); this.nextElementSibling.classList.remove('show');"
+                                     onloadstart="this.classList.add('loading');">
+                                <div class="logo-placeholder">
+                                    🖼️ Image not available<br>
+                                    <small>Click link to view</small>
+                                </div>
+                            </div>
+                            <div class="logo-info">
+                                <a href="https://cdn.prod.website-files.com/6892244f9dd9b35467d0048b/68bf321c6862e09783528a09_og-img.png" target="_blank" class="logo-url">https://cdn.prod.website-files.com/6892244f9dd9b35467d0048b/68bf321c6862e09783528a09_og-img.png</a>
+                                <div class="logo-dimensions">1200x630 pixels</div>
+                                
+                                <span class="best-badge">✅ BEST</span>
+                                
+                            </div>
+                        </div>
+                        
+                        <div class="logo-card ">
+                            <div class="logo-image-container">
+                                <img src="https://logo.clearbit.com/deepintent.com" alt="Logo" class="logo-image" 
+                                     onerror="this.classList.add('error'); this.nextElementSibling.classList.add('show');"
+                                     onload="this.classList.remove('loading'); this.nextElementSibling.classList.remove('show');"
+                                     onloadstart="this.classList.add('loading');">
+                                <div class="logo-placeholder">
+                                    🖼️ Image not available<br>
+                                    <small>Click link to view</small>
+                                </div>
+                            </div>
+                            <div class="logo-info">
+                                <a href="https://logo.clearbit.com/deepintent.com" target="_blank" class="logo-url">https://logo.clearbit.com/deepintent.com</a>
+                                <div class="logo-dimensions">128x128 pixels</div>
+                                
+                            </div>
+                        </div>
+                        
+                        <div class="logo-card ">
+                            <div class="logo-image-container">
+                                <img src="https://cdn.prod.website-files.com/6892244f9dd9b35467d0048b/68bf194c1edb9e60a9899605_d-deepintent-webclip.png" alt="Logo" class="logo-image" 
+                                     onerror="this.classList.add('error'); this.nextElementSibling.classList.add('show');"
+                                     onload="this.classList.remove('loading'); this.nextElementSibling.classList.remove('show');"
+                                     onloadstart="this.classList.add('loading');">
+                                <div class="logo-placeholder">
+                                    🖼️ Image not available<br>
+                                    <small>Click link to view</small>
+                                </div>
+                            </div>
+                            <div class="logo-info">
+                                <a href="https://cdn.prod.website-files.com/6892244f9dd9b35467d0048b/68bf194c1edb9e60a9899605_d-deepintent-webclip.png" target="_blank" class="logo-url">https://cdn.prod.website-files.com/6892244f9dd9b35467d0048b/68bf194c1edb9e60a9899605_d-deepintent-webclip.png</a>
+                                <div class="logo-dimensions">256x256 pixels</div>
+                                
+                            </div>
+                        </div>
+                        
+                    
+                </div>
+                
+            </div>
+            
+            <div class="publisher">
+                
+                <div class="publisher-header">
+                    <div class="publisher-name">🔎 honeywell.com</div>
+                    <div class="publisher-duration">Processed in 4.438492209s</div>
+                </div>
+                <div class="logos">
+                    
+                        
+                        
+                        <div class="logo-card ">
+                            <div class="logo-image-container">
+                                <img src="https://logo.clearbit.com/honeywell.com" alt="Logo" class="logo-image" 
+                                     onerror="this.classList.add('error'); this.nextElementSibling.classList.add('show');"
+                                     onload="this.classList.remove('loading'); this.nextElementSibling.classList.remove('show');"
+                                     onloadstart="this.classList.add('loading');">
+                                <div class="logo-placeholder">
+                                    🖼️ Image not available<br>
+                                    <small>Click link to view</small>
+                                </div>
+                            </div>
+                            <div class="logo-info">
+                                <a href="https://logo.clearbit.com/honeywell.com" target="_blank" class="logo-url">https://logo.clearbit.com/honeywell.com</a>
+                                <div class="logo-dimensions">128x128 pixels</div>
+                                
+                            </div>
+                        </div>
+                        
+                        <div class="logo-card ">
+                            <div class="logo-image-container">
+                                <img src="https://www.honeywell.com/etc.clientlibs/baseline-tenant/clientlibs/clientlib-general/resources/icons/favicon.ico" alt="Logo" class="logo-image" 
+                                     onerror="this.classList.add('error'); this.nextElementSibling.classList.add('show');"
+                                     onload="this.classList.remove('loading'); this.nextElementSibling.classList.remove('show');"
+                                     onloadstart="this.classList.add('loading');">
+                                <div class="logo-placeholder">
+                                    🖼️ Image not available<br>
+                                    <small>Click link to view</small>
+                                </div>
+                            </div>
+                            <div class="logo-info">
+                                <a href="https://www.honeywell.com/etc.clientlibs/baseline-tenant/clientlibs/clientlib-general/resources/icons/favicon.ico" target="_blank" class="logo-url">https://www.honeywell.com/etc.clientlibs/baseline-tenant/clientlibs/clientlib-general/resources/icons/favicon.ico</a>
+                                <div class="logo-dimensions">32x32 pixels</div>
+                                
+                            </div>
+                        </div>
+                        
+                        <div class="logo-card best">
+                            <div class="logo-image-container">
+                                <img src="https://www.honeywell.com/content/dam/honeywellbt/en/images/test/hon-corp-316-p-6265-smartflex-v4.jpg" alt="Logo" class="logo-image" 
+                                     onerror="this.classList.add('error'); this.nextElementSibling.classList.add('show');"
+                                     onload="this.classList.remove('loading'); this.nextElementSibling.classList.remove('show');"
+                                     onloadstart="this.classList.add('loading');">
+                                <div class="logo-placeholder">
+                                    🖼️ Image not available<br>
+                                    <small>Click link to view</small>
+                                </div>
+                            </div>
+                            <div class="logo-info">
+                                <a href="https://www.honeywell.com/content/dam/honeywellbt/en/images/test/hon-corp-316-p-6265-smartflex-v4.jpg" target="_blank" class="logo-url">https://www.honeywell.com/content/dam/honeywellbt/en/images/test/hon-corp-316-p-6265-smartflex-v4.jpg</a>
+                                <div class="logo-dimensions">2880x1610 pixels</div>
+                                
+                                <span class="best-badge">✅ BEST</span>
+                                
+                            </div>
+                        </div>
+                        
+                    
+                </div>
+                
+            </div>
+            
+            <div class="publisher">
+                
+                <div class="publisher-header">
+                    <div class="publisher-name">🔎 phonepe.com</div>
+                    <div class="publisher-duration">Processed in 321.847917ms</div>
+                </div>
+                <div class="logos">
+                    
+                        
+                        
+                        <div class="logo-card ">
+                            <div class="logo-image-container">
+                                <img src="https://www.phonepe.com/webstatic/11780/favicon-32x32.png?v=1e5c98f168b1aeec4e1d02c0739fa229" alt="Logo" class="logo-image" 
+                                     onerror="this.classList.add('error'); this.nextElementSibling.classList.add('show');"
+                                     onload="this.classList.remove('loading'); this.nextElementSibling.classList.remove('show');"
+                                     onloadstart="this.classList.add('loading');">
+                                <div class="logo-placeholder">
+                                    🖼️ Image not available<br>
+                                    <small>Click link to view</small>
+                                </div>
+                            </div>
+                            <div class="logo-info">
+                                <a href="https://www.phonepe.com/webstatic/11780/favicon-32x32.png?v=1e5c98f168b1aeec4e1d02c0739fa229" target="_blank" class="logo-url">https://www.phonepe.com/webstatic/11780/favicon-32x32.png?v=1e5c98f168b1aeec4e1d02c0739fa229</a>
+                                <div class="logo-dimensions">32x32 pixels</div>
+                                
+                            </div>
+                        </div>
+                        
+                        <div class="logo-card ">
+                            <div class="logo-image-container">
+                                <img src="https://www.phonepe.com/webstatic/11780/icons/icon-384x384.png?v=1e5c98f168b1aeec4e1d02c0739fa229" alt="Logo" class="logo-image" 
+                                     onerror="this.classList.add('error'); this.nextElementSibling.classList.add('show');"
+                                     onload="this.classList.remove('loading'); this.nextElementSibling.classList.remove('show');"
+                                     onloadstart="this.classList.add('loading');">
+                                <div class="logo-placeholder">
+                                    🖼️ Image not available<br>
+                                    <small>Click link to view</small>
+                                </div>
+                            </div>
+                            <div class="logo-info">
+                                <a href="https://www.phonepe.com/webstatic/11780/icons/icon-384x384.png?v=1e5c98f168b1aeec4e1d02c0739fa229" target="_blank" class="logo-url">https://www.phonepe.com/webstatic/11780/icons/icon-384x384.png?v=1e5c98f168b1aeec4e1d02c0739fa229</a>
+                                <div class="logo-dimensions">384x384 pixels</div>
+                                
+                            </div>
+                        </div>
+                        
+                        <div class="logo-card best">
+                            <div class="logo-image-container">
+                                <img src="https://www.phonepe.com/webstatic/11780/static/home-page-default-og-image-cf861ccf43bc0cabaa06ab6f4ec99753.jpg" alt="Logo" class="logo-image" 
+                                     onerror="this.classList.add('error'); this.nextElementSibling.classList.add('show');"
+                                     onload="this.classList.remove('loading'); this.nextElementSibling.classList.remove('show');"
+                                     onloadstart="this.classList.add('loading');">
+                                <div class="logo-placeholder">
+                                    🖼️ Image not available<br>
+                                    <small>Click link to view</small>
+                                </div>
+                            </div>
+                            <div class="logo-info">
+                                <a href="https://www.phonepe.com/webstatic/11780/static/home-page-default-og-image-cf861ccf43bc0cabaa06ab6f4ec99753.jpg" target="_blank" class="logo-url">https://www.phonepe.com/webstatic/11780/static/home-page-default-og-image-cf861ccf43bc0cabaa06ab6f4ec99753.jpg</a>
+                                <div class="logo-dimensions">1218x638 pixels</div>
+                                
+                                <span class="best-badge">✅ BEST</span>
+                                
+                            </div>
+                        </div>
+                        
+                        <div class="logo-card ">
+                            <div class="logo-image-container">
+                                <img src="https://www.phonepe.com/webstatic/11780/icons/icon-48x48.png?v=1e5c98f168b1aeec4e1d02c0739fa229" alt="Logo" class="logo-image" 
+                                     onerror="this.classList.add('error'); this.nextElementSibling.classList.add('show');"
+                                     onload="this.classList.remove('loading'); this.nextElementSibling.classList.remove('show');"
+                                     onloadstart="this.classList.add('loading');">
+                                <div class="logo-placeholder">
+                                    🖼️ Image not available<br>
+                                    <small>Click link to view</small>
+                                </div>
+                            </div>
+                            <div class="logo-info">
+                                <a href="https://www.phonepe.com/webstatic/11780/icons/icon-48x48.png?v=1e5c98f168b1aeec4e1d02c0739fa229" target="_blank" class="logo-url">https://www.phonepe.com/webstatic/11780/icons/icon-48x48.png?v=1e5c98f168b1aeec4e1d02c0739fa229</a>
+                                <div class="logo-dimensions">48x48 pixels</div>
+                                
+                            </div>
+                        </div>
+                        
+                        <div class="logo-card ">
+                            <div class="logo-image-container">
+                                <img src="https://www.phonepe.com/webstatic/11780/icons/icon-192x192.png?v=1e5c98f168b1aeec4e1d02c0739fa229" alt="Logo" class="logo-image" 
+                                     onerror="this.classList.add('error'); this.nextElementSibling.classList.add('show');"
+                                     onload="this.classList.remove('loading'); this.nextElementSibling.classList.remove('show');"
+                                     onloadstart="this.classList.add('loading');">
+                                <div class="logo-placeholder">
+                                    🖼️ Image not available<br>
+                                    <small>Click link to view</small>
+                                </div>
+                            </div>
+                            <div class="logo-info">
+                                <a href="https://www.phonepe.com/webstatic/11780/icons/icon-192x192.png?v=1e5c98f168b1aeec4e1d02c0739fa229" target="_blank" class="logo-url">https://www.phonepe.com/webstatic/11780/icons/icon-192x192.png?v=1e5c98f168b1aeec4e1d02c0739fa229</a>
+                                <div class="logo-dimensions">192x192 pixels</div>
+                                
+                            </div>
+                        </div>
+                        
+                        <div class="logo-card ">
+                            <div class="logo-image-container">
+                                <img src="https://www.phonepe.com/webstatic/11780/icons/icon-512x512.png?v=1e5c98f168b1aeec4e1d02c0739fa229" alt="Logo" class="logo-image" 
+                                     onerror="this.classList.add('error'); this.nextElementSibling.classList.add('show');"
+                                     onload="this.classList.remove('loading'); this.nextElementSibling.classList.remove('show');"
+                                     onloadstart="this.classList.add('loading');">
+                                <div class="logo-placeholder">
+                                    🖼️ Image not available<br>
+                                    <small>Click link to view</small>
+                                </div>
+                            </div>
+                            <div class="logo-info">
+                                <a href="https://www.phonepe.com/webstatic/11780/icons/icon-512x512.png?v=1e5c98f168b1aeec4e1d02c0739fa229" target="_blank" class="logo-url">https://www.phonepe.com/webstatic/11780/icons/icon-512x512.png?v=1e5c98f168b1aeec4e1d02c0739fa229</a>
+                                <div class="logo-dimensions">512x512 pixels</div>
+                                
+                            </div>
+                        </div>
+                        
+                        <div class="logo-card ">
+                            <div class="logo-image-container">
+                                <img src="https://www.phonepe.com/webstatic/11780/icons/icon-96x96.png?v=1e5c98f168b1aeec4e1d02c0739fa229" alt="Logo" class="logo-image" 
+                                     onerror="this.classList.add('error'); this.nextElementSibling.classList.add('show');"
+                                     onload="this.classList.remove('loading'); this.nextElementSibling.classList.remove('show');"
+                                     onloadstart="this.classList.add('loading');">
+                                <div class="logo-placeholder">
+                                    🖼️ Image not available<br>
+                                    <small>Click link to view</small>
+                                </div>
+                            </div>
+                            <div class="logo-info">
+                                <a href="https://www.phonepe.com/webstatic/11780/icons/icon-96x96.png?v=1e5c98f168b1aeec4e1d02c0739fa229" target="_blank" class="logo-url">https://www.phonepe.com/webstatic/11780/icons/icon-96x96.png?v=1e5c98f168b1aeec4e1d02c0739fa229</a>
+                                <div class="logo-dimensions">96x96 pixels</div>
+                                
+                            </div>
+                        </div>
+                        
+                        <div class="logo-card ">
+                            <div class="logo-image-container">
+                                <img src="https://www.phonepe.com/webstatic/11780/icons/icon-72x72.png?v=1e5c98f168b1aeec4e1d02c0739fa229" alt="Logo" class="logo-image" 
+                                     onerror="this.classList.add('error'); this.nextElementSibling.classList.add('show');"
+                                     onload="this.classList.remove('loading'); this.nextElementSibling.classList.remove('show');"
+                                     onloadstart="this.classList.add('loading');">
+                                <div class="logo-placeholder">
+                                    🖼️ Image not available<br>
+                                    <small>Click link to view</small>
+                                </div>
+                            </div>
+                            <div class="logo-info">
+                                <a href="https://www.phonepe.com/webstatic/11780/icons/icon-72x72.png?v=1e5c98f168b1aeec4e1d02c0739fa229" target="_blank" class="logo-url">https://www.phonepe.com/webstatic/11780/icons/icon-72x72.png?v=1e5c98f168b1aeec4e1d02c0739fa229</a>
+                                <div class="logo-dimensions">72x72 pixels</div>
+                                
+                            </div>
+                        </div>
+                        
+                        <div class="logo-card ">
+                            <div class="logo-image-container">
+                                <img src="https://logo.clearbit.com/phonepe.com" alt="Logo" class="logo-image" 
+                                     onerror="this.classList.add('error'); this.nextElementSibling.classList.add('show');"
+                                     onload="this.classList.remove('loading'); this.nextElementSibling.classList.remove('show');"
+                                     onloadstart="this.classList.add('loading');">
+                                <div class="logo-placeholder">
+                                    🖼️ Image not available<br>
+                                    <small>Click link to view</small>
+                                </div>
+                            </div>
+                            <div class="logo-info">
+                                <a href="https://logo.clearbit.com/phonepe.com" target="_blank" class="logo-url">https://logo.clearbit.com/phonepe.com</a>
+                                <div class="logo-dimensions">128x72 pixels</div>
+                                
+                            </div>
+                        </div>
+                        
+                        <div class="logo-card ">
+                            <div class="logo-image-container">
+                                <img src="https://www.phonepe.com/webstatic/11780/icons/icon-256x256.png?v=1e5c98f168b1aeec4e1d02c0739fa229" alt="Logo" class="logo-image" 
+                                     onerror="this.classList.add('error'); this.nextElementSibling.classList.add('show');"
+                                     onload="this.classList.remove('loading'); this.nextElementSibling.classList.remove('show');"
+                                     onloadstart="this.classList.add('loading');">
+                                <div class="logo-placeholder">
+                                    🖼️ Image not available<br>
+                                    <small>Click link to view</small>
+                                </div>
+                            </div>
+                            <div class="logo-info">
+                                <a href="https://www.phonepe.com/webstatic/11780/icons/icon-256x256.png?v=1e5c98f168b1aeec4e1d02c0739fa229" target="_blank" class="logo-url">https://www.phonepe.com/webstatic/11780/icons/icon-256x256.png?v=1e5c98f168b1aeec4e1d02c0739fa229</a>
+                                <div class="logo-dimensions">256x256 pixels</div>
+                                
+                            </div>
+                        </div>
+                        
+                        <div class="logo-card ">
+                            <div class="logo-image-container">
+                                <img src="https://www.phonepe.com/webstatic/11780/icons/icon-144x144.png?v=1e5c98f168b1aeec4e1d02c0739fa229" alt="Logo" class="logo-image" 
+                                     onerror="this.classList.add('error'); this.nextElementSibling.classList.add('show');"
+                                     onload="this.classList.remove('loading'); this.nextElementSibling.classList.remove('show');"
+                                     onloadstart="this.classList.add('loading');">
+                                <div class="logo-placeholder">
+                                    🖼️ Image not available<br>
+                                    <small>Click link to view</small>
+                                </div>
+                            </div>
+                            <div class="logo-info">
+                                <a href="https://www.phonepe.com/webstatic/11780/icons/icon-144x144.png?v=1e5c98f168b1aeec4e1d02c0739fa229" target="_blank" class="logo-url">https://www.phonepe.com/webstatic/11780/icons/icon-144x144.png?v=1e5c98f168b1aeec4e1d02c0739fa229</a>
+                                <div class="logo-dimensions">144x144 pixels</div>
+                                
+                            </div>
+                        </div>
+                        
+                    
+                </div>
+                
+            </div>
+            
+            <div class="publisher">
+                
+                <div class="publisher-header">
+                    <div class="publisher-name">🔎 paytm</div>
+                    <div class="publisher-duration">Processed in 174.081625ms</div>
+                </div>
+                <div class="logos">
+                    
+                        
+                        
+                        <div class="logo-card best">
+                            <div class="logo-image-container">
+                                <img src="https://logo.clearbit.com/paytm.com" alt="Logo" class="logo-image" 
+                                     onerror="this.classList.add('error'); this.nextElementSibling.classList.add('show');"
+                                     onload="this.classList.remove('loading'); this.nextElementSibling.classList.remove('show');"
+                                     onloadstart="this.classList.add('loading');">
+                                <div class="logo-placeholder">
+                                    🖼️ Image not available<br>
+                                    <small>Click link to view</small>
+                                </div>
+                            </div>
+                            <div class="logo-info">
+                                <a href="https://logo.clearbit.com/paytm.com" target="_blank" class="logo-url">https://logo.clearbit.com/paytm.com</a>
+                                <div class="logo-dimensions">128x128 pixels</div>
+                                
+                                <span class="best-badge">✅ BEST</span>
+                                
+                            </div>
+                        </div>
+                        
+                    
+                </div>
+                
+            </div>
+            
+        </div>
+        
+        <div class="footer">
+            <p>Generated by Logo Crawler - Enterprise Edition</p>
+            <p><small>Note: Some images may not display due to CORS restrictions, but all links are clickable to view the logos directly.</small></p>
+        </div>
+    </div>
+</body>
+</html>
