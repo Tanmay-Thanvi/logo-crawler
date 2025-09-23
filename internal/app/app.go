@@ -154,7 +154,7 @@ func (app *LogoCrawlerApp) displayPublisherResult(result crawler.PublisherResult
 	for _, logo := range result.Logos {
 		mark := ""
 		if result.Best != nil && logo.URL == result.Best.URL {
-			mark = " <- ✅ BEST"
+			mark = " <- ✅ SUGGESTED"
 		}
 		fmt.Printf("   %s (%dx%d)%s\n", logo.URL, logo.Width, logo.Height, mark)
 	}

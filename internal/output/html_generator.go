@@ -400,7 +400,7 @@ func (hg *HTMLGenerator) getHTMLTemplate() *template.Template {
                                 <a href="{{.URL}}" target="_blank" class="logo-url">{{.URL}}</a>
                                 <div class="logo-dimensions">{{.Width}}x{{.Height}} pixels</div>
                                 {{if eq .URL $bestURL}}
-                                <span class="best-badge">✅ BEST</span>
+                                <span class="best-badge">✅ SUGGESTED</span>
                                 {{end}}
                             </div>
                         </div>

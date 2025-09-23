@@ -79,11 +79,11 @@ go build -o logo-crawler main.go
 📈 Average time per publisher: 1.56s
 
 🔎 Publisher: amazon.com (processed in 1.2s)
-   https://logo.clearbit.com/amazon.com (512x512) <- ✅ BEST
+   https://logo.clearbit.com/amazon.com (512x512) <- ✅ SUGGESTED
    https://amazon.com/favicon.ico (32x32)
 
 🔎 Publisher: google.com (processed in 0.8s)
-   https://logo.clearbit.com/google.com (512x512) <- ✅ BEST
+   https://logo.clearbit.com/google.com (512x512) <- ✅ SUGGESTED
    https://google.com/favicon.ico (32x32)
 
 📈 Final Stats:
